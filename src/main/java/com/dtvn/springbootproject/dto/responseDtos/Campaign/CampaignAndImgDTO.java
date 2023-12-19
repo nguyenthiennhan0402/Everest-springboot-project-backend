@@ -6,10 +6,11 @@ import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
 
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CampaignDTO {
+public class CampaignAndImgDTO {
     private Integer campaignId;
     private String name;
     private Timestamp startDate;
@@ -19,6 +20,8 @@ public class CampaignDTO {
     private Float usageRate;
     private Boolean status;
     private Long bidAmount;
+    private String imgUrl;
+    private String title;
+    private String description;
+    private String finalUrl;
 }
-
-

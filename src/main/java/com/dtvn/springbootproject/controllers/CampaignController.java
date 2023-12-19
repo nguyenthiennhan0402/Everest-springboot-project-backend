@@ -4,10 +4,11 @@ import com.dtvn.springbootproject.config.JwtService;
 import com.dtvn.springbootproject.constants.AppConstants;
 import com.dtvn.springbootproject.constants.AuthConstants;
 import com.dtvn.springbootproject.constants.HttpConstants;
-import com.dtvn.springbootproject.dto.responseDtos.Campaign.CampaginAndImgDTO;
-import com.dtvn.springbootproject.dto.responseDtos.Campaign.CampaignAndCreativesDTO;
-import com.dtvn.springbootproject.dto.responseDtos.Campaign.CampaignDTO;
-import com.dtvn.springbootproject.dto.responseDtos.Creative.CreativeDTO;
+import com.dtvn.springbootproject.dto.responsedtos.Campaign.BannerDTO;
+import com.dtvn.springbootproject.dto.responsedtos.Campaign.CampaignAndImgDTO;
+import com.dtvn.springbootproject.dto.responsedtos.Campaign.CampaignAndCreativesDTO;
+import com.dtvn.springbootproject.dto.responsedtos.Campaign.CampaignDTO;
+import com.dtvn.springbootproject.dto.responsedtos.Creative.CreativeDTO;
 import com.dtvn.springbootproject.entities.Account;
 import com.dtvn.springbootproject.entities.Campaign;
 import com.dtvn.springbootproject.entities.Creatives;
@@ -30,8 +31,6 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -50,35 +49,32 @@ public class CampaignController {
     private final AccountRepository accountRepository;
     private final JwtService jwtService;
     private final FirebaseService firebaseService;
-    @GetMapping("/getCampaign")
-    public ResponseEntity<ResponseMessage<Page<CampaginAndImgDTO>>> getCampaign(
+    @GetMapping("/get-campaign")
+    public ResponseEntity<ResponseMessage<Page<CampaignAndImgDTO>>> getCampaign(
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER,required = false) String strPageNo,
             @RequestParam(value = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) String strPageSize,
             @RequestParam(value = "startDate",required = false) String startDate,
             @RequestParam(value = "endDate", required = false) String endDate){
-        if (startDate == null || startDate.isEmpty()) {
-            startDate = "1990-01-01";
-        }
-        if (endDate == null || endDate.isEmpty()) {
-            endDate = LocalDate.now().toString();
-        }
         Timestamp startTimestamp = null;
         Timestamp endTimestamp = null;
         try {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            Date parsedSDate = dateFormat.parse(startDate);
-            Date parsedEDate = dateFormat.parse(endDate);
-            startTimestamp = new Timestamp(parsedSDate.getTime());
-            endTimestamp = new Timestamp(parsedEDate.getTime());
+            if (startDate != null && !startDate.isEmpty()) {
+                Date parsedSDate = dateFormat.parse(startDate);
+                startTimestamp = new Timestamp(parsedSDate.getTime());
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                Date parsedEDate = dateFormat.parse(endDate);
+                endTimestamp = new Timestamp(parsedEDate.getTime());
+            }
         } catch (ParseException e) {
-            // Xử lý lỗi chuyển đổi
             e.printStackTrace();
         }
 
         if(!campaignService.isInteger(strPageNo))
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage<>(AppConstants.PAGENO_INVALID, HTTP_BAD_REQUEST));
+                    .body(new ResponseMessage<>(AppConstants.PAGE_NO_INVALID, HTTP_BAD_REQUEST));
         else if(!campaignService.isInteger(strPageSize)){
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseMessage<>(AppConstants.PAGESIZE_INVALID, HTTP_BAD_REQUEST));
@@ -91,17 +87,17 @@ public class CampaignController {
                         HttpConstants.HTTP_OK,campaignService.getCampaign(name,startTimestamp, endTimestamp,pageable)));
     }
 
-    @PatchMapping("/deleteCampagign")
-    public ResponseEntity<ResponseMessage<CampaignDTO>> deleteCampagin(
+    @PatchMapping("/delete-campaign")
+    public ResponseEntity<ResponseMessage<CampaignDTO>> deleteCampaign(
             @RequestParam(value = "id", required = true) String strCampaginId){
         try{
 
             Integer campaignId = Integer.parseInt(strCampaginId);
             Optional<Campaign> campaign = campaignRepository.findByIdAndDeleteFlagIsFalse(campaignId);
             if(campaign.isPresent()){
-                if(campaign.get().isDeleteFlag() == true){
+                if(campaign.get().isDeleteFlag()){
                     return ResponseEntity.status(HttpStatus.OK)
-                            .body(new ResponseMessage<>(AppConstants.CAMPAGIGN_IS_DELETED, HTTP_BAD_REQUEST));
+                            .body(new ResponseMessage<>(AppConstants.CAMPAIGN_IS_DELETED, HTTP_BAD_REQUEST));
                 } else {
                     campaignService.deleteCampaign(campaignId);
                     return ResponseEntity.status(HttpStatus.OK)
@@ -116,16 +112,15 @@ public class CampaignController {
                     .body(new ResponseMessage<>(AppConstants.CAMPAIGN_ID_INVALID, HTTP_BAD_REQUEST));
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage<>(AppConstants.ACCOUNT_DELETE_FAILD, HTTP_BAD_REQUEST));
+                    .body(new ResponseMessage<>(AppConstants.ACCOUNT_DELETE_FAILED, HTTP_BAD_REQUEST));
         }
     }
 
-    @PutMapping("/updateCampagin")
+    @PutMapping("/update-campaign")
     public ResponseEntity<ResponseMessage<CampaignAndCreativesDTO>> updateCampaign(
             @RequestParam(value = "id", required = true) String strCampaignId,
             @RequestPart(value = "file", required = true) MultipartFile file,
-            @RequestPart(value = "data", required = true) CampaignAndCreativesDTO campaignAndCreativesDTO) throws IOException {
-        List<String> listMessage = new ArrayList<>();
+            @RequestPart(value = "data", required = true) CampaignAndCreativesDTO campaignAndCreativesDTO)  {
         if(!campaignService.isInteger(strCampaignId)){
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseMessage<>(AppConstants.CAMPAIGN_ID_INVALID, HTTP_BAD_REQUEST));
@@ -152,13 +147,13 @@ public class CampaignController {
             CampaignDTO campaignDTO = campaignAndCreativesDTO.getCampaignDTO();
             if (campaignDTO.getEndDate().toInstant().isAfter(campaignDTO.getStartDate().toInstant())) {
                 // endDateTime after startDateTime
-                campaignService.updateCampagin(campaignId,campaignAndCreativesDTO, file);
+                campaignService.updateCampaign(campaignId,campaignAndCreativesDTO, file);
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ResponseMessage<>(AppConstants.CAMPAGIGN_UPDATE_SUCCESS, HTTP_OK, campaignAndCreativesDTO));
+                        .body(new ResponseMessage<>(AppConstants.CAMPAIGN_UPDATE_SUCCESS, HTTP_OK, campaignAndCreativesDTO));
             }
             // endDateTime not after startDateTime
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage<>(AppConstants.STARTDATE_IS_AFTER_ENDDATE, HTTP_BAD_REQUEST));
+                    .body(new ResponseMessage<>(AppConstants.START_DATE_IS_AFTER_END_DATE, HTTP_BAD_REQUEST));
 
         } else {
             return ResponseEntity.status(HttpStatus.OK)
@@ -166,7 +161,7 @@ public class CampaignController {
         }
     }
 
-    @PostMapping(value = "/createCampagin",consumes = {"multipart/form-data"})
+    @PostMapping(value = "/create-Campaign",consumes = {"multipart/form-data"})
     public ResponseEntity<ResponseMessage<CampaignAndCreativesDTO>> createCamapagin(
             @RequestPart("file") MultipartFile file,
             @RequestPart("data") CampaignAndCreativesDTO campaignAndCreativesDTO,
@@ -188,7 +183,7 @@ public class CampaignController {
         boolean isExistCampaign = campaignRepository.existsByNameAndDeleteFlagIsFalse(campaignAndCreativesDTO.getCampaignDTO().getName());
         if(isExistCampaign){
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage<>(AppConstants.CAMPAGIGN_ALREADY_EXISTS, HTTP_BAD_REQUEST));
+                    .body(new ResponseMessage<>(AppConstants.CAMPAIGN_ALREADY_EXISTS, HTTP_BAD_REQUEST));
         }
         boolean isExistCreative = creativeRepository.existsByTitleAndDeleteFlagIsFalse(campaignAndCreativesDTO.getCreativesDTO().getTitle());
         if(!isExistCreative){
@@ -203,19 +198,38 @@ public class CampaignController {
             } else {
                 // endDateTime not after startDateTime
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ResponseMessage<>(AppConstants.STARTDATE_IS_AFTER_ENDDATE, HTTP_BAD_REQUEST));
+                        .body(new ResponseMessage<>(AppConstants.START_DATE_IS_AFTER_END_DATE, HTTP_BAD_REQUEST));
             }
         } else{
             return  ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseMessage<>(AppConstants.CREATIVES_ALREADY_EXISTS, HTTP_BAD_REQUEST));
         }
     }
-//    @PutMapping("/showBanner")
-//    public ResponseEntity<ResponseMessage<List<String>>> showBanner(){
-//        List<String> listUrlBanner = new ArrayList<>();
-//
-//        return null;
-//    }
+    @GetMapping("/show-banner")
+    public ResponseEntity<ResponseMessage<List<BannerDTO>>> showBanner(){
+        try{
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseMessage<>(AppConstants.LIST_TOP_BANNER_GET_SUCCESS, HTTP_OK, campaignService.listBannerUrl()));
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseMessage<>(AppConstants.LIST_TOP_BANNER_EMPTY, HTTP_BAD_REQUEST));
+        }
+    }
+    @PutMapping("/minus-budget")
+    public ResponseEntity<ResponseMessage<String>> minusBudget( @RequestParam(value = "id", required = true) String strCampaignId){
+        if(!campaignService.isInteger(strCampaignId))
+            return ResponseEntity.status(HttpStatus.OK)
+                .body(new ResponseMessage<>(AppConstants.CAMPAIGN_ID_INVALID, HTTP_BAD_REQUEST));
+        Integer campaignId = Integer.parseInt(strCampaignId);
+        try{
+            campaignService.minusBudget(campaignId);
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseMessage<>(AppConstants.MINUS_BUDGET_FAILED, HTTP_BAD_REQUEST));
+        }
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ResponseMessage<>(AppConstants.MINUS_BUDGET_SUCCESS, HTTP_BAD_REQUEST));
+    }
 
 
 }

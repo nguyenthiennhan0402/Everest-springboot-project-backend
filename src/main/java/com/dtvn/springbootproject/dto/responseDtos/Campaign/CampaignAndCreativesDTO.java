@@ -1,6 +1,6 @@
-package com.dtvn.springbootproject.dto.responseDtos.Campaign;
+package com.dtvn.springbootproject.dto.responsedtos.Campaign;
 
-import com.dtvn.springbootproject.dto.responseDtos.Creative.CreativeDTO;
+import com.dtvn.springbootproject.dto.responsedtos.Creative.CreativeDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

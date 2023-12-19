@@ -1,11 +1,6 @@
 package com.dtvn.springbootproject.dto.requestDtos.Account;
-
-import com.dtvn.springbootproject.exceptions.ErrorException;
 import lombok.*;
-import org.springframework.web.ErrorResponse;
-
 import javax.validation.constraints.*;
-
 import static com.dtvn.springbootproject.constants.ErrorConstants.*;
 import static com.dtvn.springbootproject.utils.RegularExpression.*;
 
@@ -14,12 +9,12 @@ import static com.dtvn.springbootproject.utils.RegularExpression.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AccountRegisterRequestDTO {
-    @NotBlank(message = ERROR_FIRSTNAME_REQUIRED)
-    @Pattern(regexp = NAME_REGEX, message = ERROR_FIRSTNAME_INVALID)
+    @NotBlank(message = ERROR_FIRST_NAME_REQUIRED)
+    @Pattern(regexp = NAME_REGEX, message = ERROR_FIRST_NAME_INVALID)
     private String firstname;
 
-    @NotBlank(message = ERROR_LASTNAME_REQUIRED)
-    @Pattern(regexp = NAME_REGEX, message = ERROR_LASTNAME_INVALID)
+    @NotBlank(message = ERROR_LAST_NAME_REQUIRED)
+    @Pattern(regexp = NAME_REGEX, message = ERROR_LAST_NAME_INVALID)
     private String lastname;
 
     @NotBlank(message = ERROR_EMAIL_REQUIRED)

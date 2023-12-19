@@ -1,4 +1,4 @@
-package com.dtvn.springbootproject.dto.responseDtos.Account;
+package com.dtvn.springbootproject.dto.responsedtos.Account;
 
 import com.dtvn.springbootproject.entities.Account;
 import lombok.AllArgsConstructor;

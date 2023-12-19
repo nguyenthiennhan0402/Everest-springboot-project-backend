@@ -2,8 +2,8 @@ package com.dtvn.springbootproject.controllers;
 
 import com.dtvn.springbootproject.config.JwtService;
 import com.dtvn.springbootproject.constants.AuthConstants;
-import com.dtvn.springbootproject.dto.responseDtos.Account.AccountDTO;
-import com.dtvn.springbootproject.dto.responseDtos.Account.AccountResponseDTO;
+import com.dtvn.springbootproject.dto.responsedtos.Account.AccountDTO;
+import com.dtvn.springbootproject.dto.responsedtos.Account.AccountResponseDTO;
 import com.dtvn.springbootproject.dto.requestDtos.Account.AccountRegisterRequestDTO;
 import com.dtvn.springbootproject.entities.Account;
 import com.dtvn.springbootproject.entities.Role;
@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -41,14 +40,14 @@ public class AccountController {
     private final JwtService jwtService;
     private final RoleRepository roleRepository;
 
-    @PostMapping("/registerAccount")
+    @PostMapping("/register-account")
     public ResponseEntity<ResponseMessage<AccountResponseDTO>> registerAnAccount(
             @RequestBody AccountRegisterRequestDTO request
     ) {
         try {
             if (accountRepository.existsByEmail(request.getEmail())) {
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ResponseMessage(ERROR_EMAIL_ALREADY_EXISTS, HTTP_BAD_REQUEST));
+                        .body(new ResponseMessage<AccountResponseDTO>(ERROR_EMAIL_ALREADY_EXISTS, HTTP_BAD_REQUEST));
             }
             AccountResponseDTO addedAccount = accountService.registerAnAccount(request);
             if (addedAccount != null) {
@@ -68,14 +67,14 @@ public class AccountController {
     }
 
 
-    @GetMapping("/getAllAccount")
+    @GetMapping("/get-all-account")
     public ResponseEntity<ResponseMessage<Page<AccountDTO>>> getAccounts(@RequestParam(value = "emailOrName", required = false) String emailOrName,
                                                                          @RequestParam(value = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) String strPageNo,
                                                                          @RequestParam(value = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) String strPageSize) {
         try {
             if (!accountService.isInteger(strPageNo))
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ResponseMessage<>(AppConstants.PAGENO_INVALID, HTTP_BAD_REQUEST));
+                        .body(new ResponseMessage<>(AppConstants.PAGE_NO_INVALID, HTTP_BAD_REQUEST));
             else if (!accountService.isInteger(strPageSize)) {
                 return ResponseEntity.status(HttpStatus.OK)
                         .body(new ResponseMessage<>(AppConstants.PAGESIZE_INVALID, HTTP_BAD_REQUEST));
@@ -95,10 +94,9 @@ public class AccountController {
         }
 
     }
-
-    @PatchMapping("/deleteAccount")
+    @PatchMapping("/delete-account")
     public ResponseEntity<ResponseMessage<AccountDTO>> deleteAccount(
-            @RequestParam(value = "id", required = true) String AccountId,
+            @RequestParam(value = "id", required = true) String accountId,
             @RequestHeader("Authorization") String bearerToken) {
 
         //Delete "bearer" in token
@@ -106,7 +104,7 @@ public class AccountController {
         final String currentUserEmail = jwtService.extractUsername(bearerToken);
 
         try {
-            Integer id = Integer.parseInt(AccountId);
+            Integer id = Integer.parseInt(accountId);
             Optional<Account> accountDelete = accountRepository.findById(id);
             //Check if account has been deleted
             if (accountDelete.get().isDeleteFlag())
@@ -116,7 +114,7 @@ public class AccountController {
             //If the account is deleted, it is the current account
             if (accountDelete.get().getEmail().equals(currentUserEmail)) {
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ResponseMessage<>(ACCOUNT_DELETE_FAILD, HTTP_BAD_REQUEST));
+                        .body(new ResponseMessage<>(ACCOUNT_DELETE_FAILED, HTTP_BAD_REQUEST));
             }
 
             //delete account
@@ -134,7 +132,7 @@ public class AccountController {
         }
     }
 
-    @PutMapping("/update")
+    @PutMapping("/update-account")
 
     public ResponseEntity<ResponseMessage<AccountDTO>> updateAccount(@RequestParam(value = "id", required = true) Integer accountId,
                                                                      @RequestBody AccountDTO updatedAccount) {
@@ -142,10 +140,10 @@ public class AccountController {
             AccountDTO accountUpdated = accountService.updatedAccount(accountId, updatedAccount);
             if (accountUpdated != null) {
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ResponseMessage(AppConstants.ACCOUNT_UPDATE_SUCCESS, HTTP_OK, accountUpdated));
+                        .body(new ResponseMessage<AccountDTO>(AppConstants.ACCOUNT_UPDATE_SUCCESS, HTTP_OK, accountUpdated));
             } else {
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ResponseMessage(AppConstants.ACCOUNT_NOT_FOUND, HTTP_NOT_FOUND));
+                        .body(new ResponseMessage<AccountDTO>(AppConstants.ACCOUNT_NOT_FOUND, HTTP_NOT_FOUND));
             }
         } catch (ErrorException e) {
             return ResponseEntity.status(HttpStatus.OK)
@@ -154,10 +152,9 @@ public class AccountController {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ResponseMessage<>(ERROR_UNKNOWN, HTTP_BAD_REQUEST));
         }
-
     }
 
-    @GetMapping("/getRoles")
+    @GetMapping("/get-roles")
     public ResponseEntity<ResponseMessage<List<Role>>> getAllRole() {
         try {
             List<Role> listRole;
@@ -165,13 +162,13 @@ public class AccountController {
                 listRole = roleRepository.findAll();
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ResponseMessage(AppConstants.ROLES_GET_ALL_FAILED, HTTP_NOT_FOUND));
+                        .body(new ResponseMessage<>(AppConstants.ROLES_GET_ALL_FAILED, HTTP_NOT_FOUND));
             }
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage(AppConstants.ROLES_GET_ALL_SUCCESS, HTTP_OK, listRole));
+                    .body(new ResponseMessage<List<Role>>(AppConstants.ROLES_GET_ALL_SUCCESS, HTTP_OK, listRole));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseMessage<>(ERROR_UNKNOWN, HTTP_BAD_REQUEST));
+                    .body(new ResponseMessage<List<Role>>(ERROR_UNKNOWN, HTTP_BAD_REQUEST));
         }
 
     }

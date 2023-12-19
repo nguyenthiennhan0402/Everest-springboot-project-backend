@@ -1,10 +1,10 @@
 package com.dtvn.springbootproject.services.impl;
-import com.dtvn.springbootproject.dto.responseDtos.Account.AccountDTO;
+import com.dtvn.springbootproject.dto.responsedtos.Account.AccountDTO;
 import com.dtvn.springbootproject.entities.Role;
 import com.dtvn.springbootproject.exceptions.ErrorException;
 import com.dtvn.springbootproject.repositories.RoleRepository;
 import com.dtvn.springbootproject.dto.requestDtos.Account.AccountRegisterRequestDTO;
-import com.dtvn.springbootproject.dto.responseDtos.Account.AccountResponseDTO;
+import com.dtvn.springbootproject.dto.responsedtos.Account.AccountResponseDTO;
 import com.dtvn.springbootproject.entities.Account;
 import com.dtvn.springbootproject.repositories.AccountRepository;
 import com.dtvn.springbootproject.services.AccountService;

@@ -2,7 +2,6 @@ package com.dtvn.springbootproject.utils.validators;
 
 import com.dtvn.springbootproject.exceptions.ErrorException;
 import com.dtvn.springbootproject.dto.requestDtos.Account.AccountRegisterRequestDTO;
-import com.dtvn.springbootproject.repositories.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +17,6 @@ import static com.dtvn.springbootproject.utils.RegularExpression.*;
 @Component
 @RequiredArgsConstructor
 public class AccountValidator {
-    private final AccountRepository accountRepository;
 
     public void validateRegisterRequest(AccountRegisterRequestDTO request) {
         List<ValidationError> validationErrors = new ArrayList<>();
@@ -67,23 +65,23 @@ public class AccountValidator {
 
     private void validateName(String name, String fieldName,List<ValidationError> errors) {
         if (name.isEmpty() && "Firstname".contains(fieldName)) {
-            errors.add(new ValidationError(ERROR_FIRSTNAME_REQUIRED));
+            errors.add(new ValidationError(ERROR_FIRST_NAME_REQUIRED));
         }
         if (name.isEmpty()  && "Lastname".contains(fieldName)) {
-            errors.add(new ValidationError(ERROR_LASTNAME_REQUIRED));
+            errors.add(new ValidationError(ERROR_LAST_NAME_REQUIRED));
         }
         if (name.length() > MAX_FIRSTNAME_LENGTH && "Firstname".contains(fieldName)) {
-            errors.add(new ValidationError(ERROR_FIRSTNAME_MAX_LENGTH));
+            errors.add(new ValidationError(ERROR_FIRST_NAME_MAX_LENGTH));
         }
         if (name.length() > MAX_LASTNAME_LENGTH && "Lastname".contains(fieldName)) {
-            errors.add(new ValidationError(ERROR_LASTNAME_MAX_LENGTH));
+            errors.add(new ValidationError(ERROR_LAST_NAME_MAX_LENGTH));
         }
 
         if ("Firstname".contains(fieldName) && !name.matches(NAME_REGEX)) {
-            errors.add(new ValidationError(ERROR_FIRSTNAME_INVALID));
+            errors.add(new ValidationError(ERROR_FIRST_NAME_INVALID));
         }
         if ("Lastname".contains(fieldName) && !name.matches(NAME_REGEX)) {
-            errors.add(new ValidationError(ERROR_LASTNAME_INVALID));
+            errors.add(new ValidationError(ERROR_LAST_NAME_INVALID));
         }
     }
 
@@ -98,7 +96,6 @@ public class AccountValidator {
             errors.add(new ValidationError(ERROR_PHONE_FORMAT_INVALID));
         }
     }
-
     private void validateAddress(String address,List<ValidationError> errors) {
         if (address.isEmpty()) {
             errors.add(new ValidationError(ERROR_ADDRESS_REQUIRED));
