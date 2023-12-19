@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BannerDTO {
-    private int campaginId;
-    private String ulrImg;
+    private int campaignId;
+    private String urlImg;
 }

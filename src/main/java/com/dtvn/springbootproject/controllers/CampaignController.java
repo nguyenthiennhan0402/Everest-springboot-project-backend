@@ -91,7 +91,6 @@ public class CampaignController {
     public ResponseEntity<ResponseMessage<CampaignDTO>> deleteCampaign(
             @RequestParam(value = "id", required = true) String strCampaginId){
         try{
-
             Integer campaignId = Integer.parseInt(strCampaginId);
             Optional<Campaign> campaign = campaignRepository.findByIdAndDeleteFlagIsFalse(campaignId);
             if(campaign.isPresent()){
